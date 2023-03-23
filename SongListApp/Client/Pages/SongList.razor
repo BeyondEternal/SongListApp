@@ -1,0 +1,187 @@
+﻿@page "/songs"
+@using SongListApp.Shared.Model;
+@inject HttpClient Http
+
+<h1>Administrar canciones</h1>
+
+@if (canciones != null && canciones.Any())
+{
+    <div class="row mb-2">
+        <div class="col-6">
+            <input type="text" @bind-value="filtro" placeholder="Filtrar por título">
+        </div>
+        <div class="col-6">
+            <select class="form-select" @bind="orden">
+                <option value="">Ordenar por título</option>
+                <option value="asc">Ascendente</option>
+                <option value="desc">Descendente</option>
+            </select>
+        </div>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Artista</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cancion in ObtenerCancionesFiltradas())
+            {
+                <tr>
+                    <td>@cancion.Titulo</td>
+                    <td>@cancion.Artista</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" @onclick="() => EliminarCancion(cancion)">Eliminar</button>
+                        <button class="btn btn-sm btn-secondary" @onclick="() => EditarCancion(cancion)">Editar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No hay canciones registradas.</p>
+}
+
+<button class="btn btn-primary" @onclick="MostrarFormulario">Agregar canción</button>
+
+@if (formularioVisible)
+{
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <h2>@(modoEdicion ? "Editar" : "Agregar") canción</h2>
+            <hr>
+            <EditForm Model="@cancionForm" OnValidSubmit="@ManejarFormulario" class="needs-validation">
+                <div class="mb-3">
+                    <label for="titulo" class="form-label">Título</label>
+                    <InputText @bind-Value="cancionForm.Titulo" id="titulo" class="form-control" required />
+                    <div class="invalid-feedback">Por favor ingrese un título válido.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="artista" class="form-label">Artista</label>
+                    <InputText @bind-Value="cancionForm.Artista" id="artista" class="form-control" required />
+                    <div class="invalid-feedback">Por favor ingrese un artista válido.</div>
+                </div>
+                <button type="submit" class="btn btn-primary">@((modoEdicion ? "Editar" : "Agregar"))</button>
+                <button type="button" class="btn btn-secondary" @onclick="CancelarFormulario">Cancelar</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Song>? canciones = new List<Song>();
+    private List<Song>? cancionesFiltradas = new List<Song>();
+    private bool formularioVisible = false;
+    private bool modoEdicion = false;
+    private Song cancionForm = new Song();
+    private string filtro = "";
+    private string orden = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarCanciones();
+    }
+
+    public async Task CargarCanciones()
+    {
+        canciones = await Http.GetFromJsonAsync<List<Song>>("api/canciones");
+        FiltrarCanciones();
+    }
+
+    public async Task AgregarCancion()
+    {
+        var response = await Http.PostAsJsonAsync("api/canciones", cancionForm);
+        response.EnsureSuccessStatusCode();
+
+        cancionForm = new Song();
+        await CargarCanciones();
+        formularioVisible = false;
+    }
+
+    public async Task EliminarCancion(Song cancion)
+    {
+        var response = await Http.DeleteAsync($"api/canciones/{cancion.Id}");
+        response.EnsureSuccessStatusCode();
+
+        await CargarCanciones();
+    }
+
+    public async Task ModificarCancion(Song cancionAnterior, Song cancionNueva)
+    {
+        var response = await Http.PutAsJsonAsync($"api/canciones/{cancionAnterior.Id}", cancionNueva);
+        response.EnsureSuccessStatusCode();
+
+        await CargarCanciones();
+        formularioVisible = false;
+        modoEdicion = false;
+    }
+
+    public void MostrarFormulario()
+    {
+        cancionForm = new Song();
+        formularioVisible = true;
+    }
+
+    public void CancelarFormulario()
+    {
+        formularioVisible = false;
+        modoEdicion = false;
+    }
+
+    public void EditarCancion(Song cancion)
+    {
+        cancionForm = cancion;
+        formularioVisible = true;
+        modoEdicion = true;
+    }
+
+    public void FiltrarCanciones()
+    {
+        cancionesFiltradas = FiltrarCanciones(canciones!, filtro);
+
+        if (!string.IsNullOrEmpty(orden))
+        {
+            cancionesFiltradas = ObtenerCancionesOrdenadas(cancionesFiltradas, orden == "asc");
+        }
+    }
+
+    public List<Song> ObtenerCancionesOrdenadas(List<Song> listaCanciones, bool ascendente)
+    {
+        if (ascendente)
+        {
+            return listaCanciones.OrderBy(c => c.Titulo).ToList();
+        }
+        else
+        {
+            return listaCanciones.OrderByDescending(c => c.Titulo).ToList();
+        }
+    }
+
+    public List<Song> FiltrarCanciones(List<Song> listaCanciones, string filtro)
+    {
+        return listaCanciones.Where(c => c.Titulo!.Contains(filtro)).ToList();
+    }
+
+    public List<Song> ObtenerCancionesFiltradas()
+    {
+        return cancionesFiltradas!;
+    }
+
+    public async Task ManejarFormulario()
+    {
+        if (modoEdicion)
+        {
+            await ModificarCancion(cancionForm, cancionForm);
+        }
+        else
+        {
+            await AgregarCancion();
+        }
+    }
+}
+
