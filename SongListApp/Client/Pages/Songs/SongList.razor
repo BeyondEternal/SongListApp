@@ -1,0 +1,116 @@
+﻿@page "/songs"
+@using SongListApp.Shared.Model;
+@inject HttpClient Http
+@inject NavigationManager navigate
+
+<h1>Songs</h1>
+<button class="btn btn-outline-primary mb-4" @onclick="AddSong">Add song</button>
+@if (songs == null)
+{
+        <p>Loading...</p>
+}
+else
+{
+    if (songs.Count == 0)
+    {
+                <p>No songs added.</p>
+    }
+    else
+    {
+                <div class="row mb-2">
+                    <div class="col-6">
+                <input class="form-control" type="text" @bind="searchTerm" @bind:event="oninput" placeholder="Search by keyword" />
+                    </div>
+                    
+                </div>
+
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Title
+                        <button class="btn btn-sm btn-outline-secondary rotate-arrow" @onclick='() => { ApplySort("title"); isUpArrowTitle = !isUpArrowTitle; }' style="transform: rotate(@((isUpArrowTitle ? 0 : 180) + "deg"));"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" id="up-arrow"><path fill="#000" fill-rule="evenodd" d="M5.306 15.694a1.043 1.043 0 0 0 1.476 0L12 10.47l5.218 5.224a1.043 1.043 0 0 0 1.476 0 1.046 1.046 0 0 0 0-1.478l-5.904-5.91a1.04 1.04 0 0 0-.79-.305 1.04 1.04 0 0 0-.79.305l-5.904 5.91a1.046 1.046 0 0 0 0 1.478Z" clip-rule="evenodd"></path></svg></button>
+                    </th>
+                            <th>Artist
+                        <button class="btn btn-sm btn-outline-secondary rotate-arrow" @onclick='() => { ApplySort("art"); isUpArrowArtist = !isUpArrowArtist; }' style="transform: rotate(@((isUpArrowArtist ? 0 : 180) + "deg"));"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" id="up-arrow"><path fill="#000" fill-rule="evenodd" d="M5.306 15.694a1.043 1.043 0 0 0 1.476 0L12 10.47l5.218 5.224a1.043 1.043 0 0 0 1.476 0 1.046 1.046 0 0 0 0-1.478l-5.904-5.91a1.04 1.04 0 0 0-.79-.305 1.04 1.04 0 0 0-.79.305l-5.904 5.91a1.046 1.046 0 0 0 0 1.478Z" clip-rule="evenodd"></path></svg></button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                @foreach (var song in FilteredSongs())
+                {
+                                <tr>
+                                    <td>@song.Title</td>
+                                    <td>@song.Artist</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-info" @onclick="() => ModifySong(song.Id)">Edit</button>
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteSong(song)">Delete</button>
+                                    </td>
+                                </tr>
+                }
+                    </tbody>
+                </table>
+    }
+}
+
+@code {
+    private List<Song>? songs;
+    private string? searchTerm;
+    private string? sortColumn;
+    private bool isSortedAscending;
+    private bool isUpArrowTitle = true;
+    private bool isUpArrowArtist = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        songs = await Http.GetFromJsonAsync<List<Song>>("api/songs");
+    }
+
+    private void ApplySort(String e)
+    {
+        sortColumn = e;
+        isSortedAscending = !isSortedAscending;
+        switch (sortColumn)
+        {
+            case "title":
+                songs = isSortedAscending ? songs!.OrderBy(s => s.Title).ToList() : songs!.OrderByDescending(s => s.Title).ToList();
+                break;
+            case "art":
+                songs = isSortedAscending ? songs!.OrderBy(s => s.Artist).ToList() : songs!.OrderByDescending(s => s.Artist).ToList();
+                break;
+            default:
+                break;
+        }
+        StateHasChanged();
+    }
+
+    private IEnumerable<Song> FilteredSongs()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            return songs!;
+        }
+        else
+        {
+            return songs!.Where(s => s.Title!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || s.Artist!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    private void AddSong()
+    {
+        navigate.NavigateTo("songs/add");
+    }
+
+    private void ModifySong(int id)
+    {
+        navigate.NavigateTo($"songs/edit/{id}");
+    }
+
+    private async Task DeleteSong(Song song)
+    {
+        await Http.DeleteAsync($"api/Songs/{song.Id}");
+        songs!.Remove(song);
+
+    }
+
+}
+

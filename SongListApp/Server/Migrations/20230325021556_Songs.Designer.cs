@@ -11,8 +11,8 @@ using SongListApp.Server.Data;
 namespace SongListApp.Server.Migrations
 {
     [DbContext(typeof(SongContext))]
-    [Migration("20230323062308_Song")]
-    partial class Song
+    [Migration("20230325021556_Songs")]
+    partial class Songs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,10 +32,12 @@ namespace SongListApp.Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Artista")
+                    b.Property<string>("Artist")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Titulo")
+                    b.Property<string>("Title")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

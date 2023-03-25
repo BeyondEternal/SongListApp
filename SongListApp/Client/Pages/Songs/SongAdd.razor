@@ -1,0 +1,33 @@
+﻿@page "/songs/add"
+@using SongListApp.Shared.Model;
+@inject HttpClient http;
+@inject NavigationManager navigator;
+
+<h3>Add Song</h3>
+<EditForm Model="song" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+        <div class="form-group">
+            <label class="form-label" for="songTilte">Song Title</label>
+            <InputText class="form-control" id="songTitle" @bind-Value="song.Title" />
+            <ValidationMessage For="@(()=> song.Title)" />
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="songArtist">Song Artist</label>
+            <InputText class="form-control" id="songArtist" @bind-Value="song.Artist" />
+            <ValidationMessage For="@(()=> song.Artist)" />
+        </div>
+        <button class="btn btn-outline-success mt-4" type="submit">Add song</button>
+</EditForm>
+
+@code {
+    private Song song = new Song();
+
+    private async Task HandleValidSubmit()
+    {
+        var response = await http.PostAsJsonAsync("api/Songs", song);
+        if (response.IsSuccessStatusCode)
+        {
+            navigator.NavigateTo("songs");
+        }
+    }
+}

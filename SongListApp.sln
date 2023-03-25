@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SongListApp.Server", "SongListApp\Server\SongListApp.Server.csproj", "{A1C275EA-678F-441A-86C1-FEFF44377545}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SongListApp.Server", "SongListApp\Server\SongListApp.Server.csproj", "{A1C275EA-678F-441A-86C1-FEFF44377545}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SongListApp.Client", "SongListApp\Client\SongListApp.Client.csproj", "{BC1BC136-DB17-4CA4-B6B5-377D4B35EC03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SongListApp.Client", "SongListApp\Client\SongListApp.Client.csproj", "{BC1BC136-DB17-4CA4-B6B5-377D4B35EC03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SongListApp.Shared", "SongListApp\Shared\SongListApp.Shared.csproj", "{336C0DD0-7E6C-4ECB-B4BF-A32B180FAA40}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SongListApp.Shared", "SongListApp\Shared\SongListApp.Shared.csproj", "{336C0DD0-7E6C-4ECB-B4BF-A32B180FAA40}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
